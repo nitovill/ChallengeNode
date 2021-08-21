@@ -16,10 +16,10 @@ module.exports = (sequelize) => {
       allowNull: true,
     },
     age: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER,
     },
     weight: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER,
     },
     history: {
       type: DataTypes.STRING,
