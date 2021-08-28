@@ -7,7 +7,6 @@ function verifyToken(req, res, next) {
     return res.status(404).json({ auth: false, message: "no token provider" });
   } else {
     const decoded = jwt.verify(token, PrivateKey);
-    console.log(decoded);
     req.userId = decoded.id;
   }
   next();

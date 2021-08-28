@@ -16,10 +16,10 @@ router.post("/register", (req, res, next) => {
     password: hash,
   })
     .then((resp) => {
-      const token = jwt.sign({ id: resp._id }, PrivateKey, {
+      const token = jwt.sign({ id: resp.id }, PrivateKey, {
         expiresIn: 60 * 60 * 24,
       });
-      res.json({ auth: true, token });
+      res.json({ resp, token });
     })
     .catch((err) => next(err));
 });
@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
     if (!validPassword) {
       return res.json({ auth: false, message: "password invalid" });
     }
-    const token = jwt.sign({ id: user._id }, PrivateKey, {
+    const token = jwt.sign({ id: user.id }, PrivateKey, {
       expiresIn: 60 * 60 * 24,
     });
     res.json({ auth: true, token });
