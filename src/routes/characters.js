@@ -51,20 +51,14 @@ router.post("/create", async (req, res) => {
   res.send(newcharacter);
 });
 
-router.post("/edit", async (req, res) => {
-  const { name, image, weight, history, age, movies } = req.body;
-  const newcharacter = await Character.create({
-    name,
-    weight,
-    id: uuidv4(),
-    image,
-    history,
-    age,
-  });
-  movies.map((mov) => {
-    newcharacter.setCharmov(mov);
-  });
-  res.send(newcharacter);
+router.post("/edit/:id", async (req, res, next) => {
+  const { name, image, weight, history, age } = req.body;
+  Character.update(
+    { name, weight, image, history, age },
+    { where: { id: req.params.id } }
+  )
+    .then((result) => res.send(result))
+    .catch((err) => next(err));
 });
 
 module.exports = router;
