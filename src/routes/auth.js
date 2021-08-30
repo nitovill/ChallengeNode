@@ -29,7 +29,6 @@ router.post("/login", async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   } else {
-    console.log(user);
     const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {
       return res.json({ auth: false, message: "password invalid" });
@@ -40,11 +39,11 @@ router.post("/login", async (req, res) => {
     res.json({ auth: true, token });
   }
 });
-router.get("/me", verifyToken, async (req, res) => {
+/* router.get("/me", verifyToken, async (req, res) => {
   const user = await User.findByPk(req.userId, { password: 0 });
   if (!user) {
     return res.status(404).json({ auth: false, message: "no user find" });
   }
   res.send(user);
-});
+}); */
 module.exports = router;

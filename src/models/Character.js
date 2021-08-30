@@ -24,9 +24,6 @@ module.exports = (sequelize) => {
     history: {
       type: DataTypes.STRING,
     },
-    movies: {
-      type: DataTypes.STRING,
-    },
   });
 };
 /*○ Imagen.
