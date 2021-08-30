@@ -6,11 +6,81 @@ const verifyToken = require("../controlers/authControler");
 const { v4: uuidv4 } = require("uuid");
 
 router.get("/", verifyToken, async (req, res, next) => {
-  const currentPage = req.params.currentPage || 1;
   const user = await User.findByPk(req.userId, { password: 0 });
   if (!user) {
     return res.status(404).json({ auth: false, message: "no user find" });
   }
+  var { name, age, movie, weight } = req.query;
+  if (name) {
+    const namemin = name.toLowerCase();
+    function filtrar(char) {
+      const charname = char.name.toLowerCase();
+      return charname.includes(namemin);
+    }
+    const api = axios(`https://api.disneyapi.dev/characters`);
+    const db = Character.findAll({
+      include: {
+        model: Movie,
+        as: "charmov",
+      },
+    });
+    Promise.all([api, db]).then((resp) => {
+      const [charapi, chardb] = resp;
+      const dbfiltrados = chardb.filter(filtrar);
+      const apifiltrados = charapi.data.data.filter(filtrar);
+      const response = dbfiltrados.concat(apifiltrados);
+      if (response.length === 0) {
+        return res.send([]);
+      } else {
+        // const limitedList = response.slice(0, 8);
+        return res.json(response);
+      }
+    });
+  }
+  if (age) {
+    function filtrarage(char) {
+      return char.age == age;
+    }
+    const api = axios(`https://api.disneyapi.dev/characters`);
+    const db = Character.findAll();
+    Promise.all([api, db]).then((resp) => {
+      const [charapi, chardb] = resp;
+      const dbfiltrados = chardb.filter(filtrarage);
+      const apifiltrados = charapi.data.data.filter(filtrarage);
+      const response = dbfiltrados.concat(apifiltrados);
+      if (response.length === 0) {
+        return res.send([]);
+      } else {
+        // const limitedList = response.slice(0, 8);
+        return res.json(response);
+      }
+    });
+  }
+  if (weight) {
+    function filtrarweight(char) {
+      return char.weight == weight;
+    }
+    const api = axios(`https://api.disneyapi.dev/characters`);
+    const db = Character.findAll();
+    Promise.all([api, db]).then((resp) => {
+      const [charapi, chardb] = resp;
+      const dbfiltrados = chardb.filter(filtrarweight);
+      const apifiltrados = charapi.data.data.filter(filtrarweight);
+      const response = dbfiltrados.concat(apifiltrados);
+      if (response.length === 0) {
+        return res.send([]);
+      } else {
+        // const limitedList = response.slice(0, 8);
+        return res.json(response);
+      }
+    });
+  }
+  if (movie) {
+    return res.send(movie);
+  }
+
+  /*
+  const currentPage = req.params.currentPage || 1;
   const api = axios(`https://api.disneyapi.dev/characters?page=${currentPage}`);
   const db = Character.findAll({
     include: {
@@ -33,9 +103,13 @@ router.get("/", verifyToken, async (req, res, next) => {
       });
       return res.json(characters);
     })
-    .catch((err) => next(err));
+    .catch((err) => next(err));*/
 });
-router.post("/", async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
+  const user = await User.findByPk(req.userId, { password: 0 });
+  if (!user) {
+    return res.status(404).json({ auth: false, message: "no user find" });
+  }
   const { name, image, weight, history, age, movies } = req.body;
   const newcharacter = await Character.create({
     name,
@@ -51,7 +125,11 @@ router.post("/", async (req, res) => {
   res.send(newcharacter);
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyToken, async (req, res) => {
+  const user = await User.findByPk(req.userId, { password: 0 });
+  if (!user) {
+    return res.status(404).json({ auth: false, message: "no user find" });
+  }
   const { name, image, weight, history, age, movies } = req.body;
   /*   Character.update(
     { name, weight, image, history, age },
@@ -85,7 +163,11 @@ router.put("/:id", async (req, res) => {
       throw new Error(error);
     });
 });
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, async (req, res) => {
+  const user = await User.findByPk(req.userId, { password: 0 });
+  if (!user) {
+    return res.status(404).json({ auth: false, message: "no user find" });
+  }
   Character.destroy({ where: { id: req.params.id } })
     .then((rowDeleted) => {
       if (rowDeleted === 1) {
@@ -97,4 +179,18 @@ router.delete("/:id", async (req, res) => {
       throw new Error(error);
     });
 });
+router.get("/:id", verifyToken, async (req, res) => {
+  const user = await User.findByPk(req.userId, { password: 0 });
+  if (!user) {
+    return res.status(404).json({ auth: false, message: "no user find" });
+  }
+  const character = await Character.findByPk(req.params.id, {
+    include: {
+      model: Movie,
+      as: "charmov",
+    },
+  });
+  res.send(character);
+});
+
 module.exports = router;
