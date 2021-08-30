@@ -35,7 +35,7 @@ router.get("/", verifyToken, async (req, res, next) => {
     })
     .catch((err) => next(err));
 });
-router.post("/create", async (req, res) => {
+router.post("/", async (req, res) => {
   const { name, image, weight, history, age, movies } = req.body;
   const newcharacter = await Character.create({
     name,
@@ -51,7 +51,7 @@ router.post("/create", async (req, res) => {
   res.send(newcharacter);
 });
 
-router.post("/edit/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   const { name, image, weight, history, age, movies } = req.body;
   /*   Character.update(
     { name, weight, image, history, age },
@@ -85,5 +85,16 @@ router.post("/edit/:id", async (req, res) => {
       throw new Error(error);
     });
 });
-
+router.delete("/:id", async (req, res) => {
+  Character.destroy({ where: { id: req.params.id } })
+    .then((rowDeleted) => {
+      if (rowDeleted === 1) {
+        return res.send("Deleted successfully");
+      }
+      res.send("Character not found");
+    })
+    .catch((error) => {
+      throw new Error(error);
+    });
+});
 module.exports = router;
