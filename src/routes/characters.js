@@ -51,14 +51,39 @@ router.post("/create", async (req, res) => {
   res.send(newcharacter);
 });
 
-router.post("/edit/:id", async (req, res, next) => {
-  const { name, image, weight, history, age } = req.body;
-  Character.update(
+router.post("/edit/:id", async (req, res) => {
+  const { name, image, weight, history, age, movies } = req.body;
+  /*   Character.update(
     { name, weight, image, history, age },
     { where: { id: req.params.id } }
   )
     .then((result) => res.send(result))
     .catch((err) => next(err));
+ */
+  Character.findOne({ where: { id: req.params.id } })
+    .then((record) => {
+      if (!record) {
+        throw new Error("No record found");
+      }
+      let values = {
+        name,
+        image,
+        weight,
+        history,
+        age,
+      };
+
+      record.update(values).then((updatedRecord) => {
+        movies.map((mov) => {
+          updatedRecord.setCharmov(mov);
+        });
+        res.send(updatedRecord);
+      });
+    })
+    .catch((error) => {
+      // do seomthing with the error
+      throw new Error(error);
+    });
 });
 
 module.exports = router;
