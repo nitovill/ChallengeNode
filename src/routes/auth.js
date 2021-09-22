@@ -4,24 +4,45 @@ var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
 
 const { PrivateKey } = require("../../lib/config");
-const verifyToken = require("../controlers/authControler");
+//const verifyToken = require("../controlers/authControler");
 const { User } = require("../db");
+const sgMail = require("@sendgrid/mail");
 
-router.post("/register", (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   const { email, username, password } = req.body;
   var hash = bcrypt.hashSync(password, 10);
-  User.create({
-    email,
-    username,
-    password: hash,
-  })
-    .then((resp) => {
-      const token = jwt.sign({ id: resp.id }, PrivateKey, {
-        expiresIn: 60 * 60 * 24,
-      });
-      res.json({ resp, token });
+  const user = await findOne(where({ email: email }));
+  if (!user) {
+    User.create({
+      email,
+      username,
+      password: hash,
     })
-    .catch((err) => next(err));
+      .then((resp) => {
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+        const msg = {
+          to: "test@example.com", // Change to your recipient
+          from: "test@example.com", // Change to your verified sender
+          subject: "Sending with SendGrid is Fun",
+          text: "and easy to do anywhere, even with Node.js",
+          html: "<strong>and easy to do anywhere, even with Node.js</strong>",
+        };
+        sgMail
+          .send(msg)
+          .then(() => {
+            console.log("Email sent");
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        const token = jwt.sign({ id: resp.id }, PrivateKey, {
+          expiresIn: 60 * 60 * 24,
+        });
+        return res.json({ resp, token });
+      })
+      .catch((err) => next(err));
+  }
+  res.status(409).json({ message: "This email is already registered" });
 });
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;

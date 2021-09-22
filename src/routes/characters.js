@@ -11,22 +11,26 @@ router.get("/", verifyToken, async (req, res, next) => {
     return res.status(404).json({ auth: false, message: "no user find" });
   }
   var { name, age, movie, weight } = req.query;
+
   if (name) {
     const namemin = name.toLowerCase();
     function filtrar(char) {
       const charname = char.name.toLowerCase();
       return charname.includes(namemin);
     }
-    const api = axios(`https://api.disneyapi.dev/characters`);
-    const db = Character.findAll({
+    /*     const api = axios(`https://api.disneyapi.dev/characters`);
+     */ Character.findAll({
       include: {
         model: Movie,
         as: "charmov",
       },
+    }).then((chardb) => {
+      const response = chardb.filter(filtrar);
+      return res.send(response);
     });
-    Promise.all([api, db]).then((resp) => {
+    /*    Promise.all([api, db]).then((resp) => {
       const [charapi, chardb] = resp;
-      const dbfiltrados = chardb.filter(filtrar);
+      
       const apifiltrados = charapi.data.data.filter(filtrar);
       const response = dbfiltrados.concat(apifiltrados);
       if (response.length === 0) {
@@ -35,15 +39,18 @@ router.get("/", verifyToken, async (req, res, next) => {
         // const limitedList = response.slice(0, 8);
         return res.json(response);
       }
-    });
+    }); */
   }
   if (age) {
-    function filtrarage(char) {
+    function filtrarAge(char) {
       return char.age == age;
     }
-    const api = axios(`https://api.disneyapi.dev/characters`);
-    const db = Character.findAll();
-    Promise.all([api, db]).then((resp) => {
+    //const api = axios(`https://api.disneyapi.dev/characters`);
+    Character.findAll().then((chardb) => {
+      const response = chardb.filter(filtrarAge);
+      return res.send(response);
+    });
+    /* Promise.all([api, db]).then((resp) => {
       const [charapi, chardb] = resp;
       const dbfiltrados = chardb.filter(filtrarage);
       const apifiltrados = charapi.data.data.filter(filtrarage);
@@ -54,15 +61,18 @@ router.get("/", verifyToken, async (req, res, next) => {
         // const limitedList = response.slice(0, 8);
         return res.json(response);
       }
-    });
+    }); */
   }
   if (weight) {
-    function filtrarweight(char) {
+    function filtrarWeight(char) {
       return char.weight == weight;
     }
-    const api = axios(`https://api.disneyapi.dev/characters`);
-    const db = Character.findAll();
-    Promise.all([api, db]).then((resp) => {
+    //const api = axios(`https://api.disneyapi.dev/characters`);
+    Character.findAll().then((chardb) => {
+      const response = chardb.filter(filtrarWeight);
+      return res.send(response);
+    });
+    /* Promise.all([api, db]).then((resp) => {
       const [charapi, chardb] = resp;
       const dbfiltrados = chardb.filter(filtrarweight);
       const apifiltrados = charapi.data.data.filter(filtrarweight);
@@ -73,10 +83,18 @@ router.get("/", verifyToken, async (req, res, next) => {
         // const limitedList = response.slice(0, 8);
         return res.json(response);
       }
-    });
+    }); */
   }
   if (movie) {
-    return res.send(movie);
+    Movie.findAll({
+      where: { id: movie },
+      include: {
+        model: Character,
+        as: "charmov",
+      },
+    }).then((resp) => {
+      return res.send(resp);
+    });
   }
 
   /*
@@ -104,6 +122,11 @@ router.get("/", verifyToken, async (req, res, next) => {
       return res.json(characters);
     })
     .catch((err) => next(err));*/
+  Character.findAll({ include: { model: Movie, as: "charmov" } }).then(
+    (resp) => {
+      res.send(resp);
+    }
+  );
 });
 router.post("/", verifyToken, async (req, res) => {
   const user = await User.findByPk(req.userId, { password: 0 });
