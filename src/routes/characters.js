@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const router = Router();
-const axios = require("axios");
-const { Character, Movie, User } = require("../db");
+/* const axios = require("axios");
+ */ const { Character, Movie, User } = require("../db");
 const verifyToken = require("../controlers/authControler");
 const { v4: uuidv4 } = require("uuid");
 
@@ -11,7 +11,6 @@ router.get("/", verifyToken, async (req, res, next) => {
     return res.status(404).json({ auth: false, message: "no user find" });
   }
   var { name, age, movie, weight } = req.query;
-
   if (name) {
     const namemin = name.toLowerCase();
     function filtrar(char) {
@@ -128,6 +127,22 @@ router.get("/", verifyToken, async (req, res, next) => {
     }
   );
 });
+/* router.get("/:id", verifyToken, async (req, res) => {
+  const user = await User.findByPk(req.userId, { password: 0 });
+  if (!user) {
+    return res.status(404).json({ auth: false, message: "no user find" });
+  }
+  var characterId = req.params.id;
+  if (characterId) {
+    const resp = await db.Actor.findByPk(characterId, {
+      include: { model: Movie, as: "charmov" },
+    });
+    if (resp) {
+      return res.send({ resp });
+    }
+    return res.status(404).json({ message: "character not found" });
+  }
+}); */
 router.post("/", verifyToken, async (req, res) => {
   const user = await User.findByPk(req.userId, { password: 0 });
   if (!user) {
